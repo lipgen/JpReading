@@ -25,6 +25,7 @@ public class VocabDbHandler {
 		this.connection = DriverManager.getConnection(DB_PATH);
 	}
 	
+	//работа с таблицей vocabulary
 	public List<vocab> getAllWords(){
 		try (Statement statement = this.connection.createStatement()){
 			List<vocab> words = new ArrayList<>();
@@ -86,5 +87,122 @@ public class VocabDbHandler {
 			e.printStackTrace();
 		}
 	}
+	
+	//работа с таблицей kanji
+	public List<kanji> getAllKanjis(){
+		try (Statement statement = this.connection.createStatement()){
+			List<kanji> kanjis = new ArrayList<>();
+			ResultSet resultSet = statement.executeQuery("SELECT id_kanji, kanji, Meaning,"
+					+ "Reading, jlptlvl, learnStat FROM kanji");
+			while(resultSet.next()) {
+				kanjis.add(new kanji(
+						resultSet.getInt("id_kanji"),
+						resultSet.getString("kanji"),
+						resultSet.getString("Reading"),
+						resultSet.getString("Meaning"),
+						resultSet.getInt("jlptlvl"),
+						resultSet.getInt("learnStat")));
+			}
+			return kanjis;
+		}catch(SQLException e){
+			e.printStackTrace();
+			return Collections.emptyList();
+		}
+	}
+	
+	public void addKanji(kanji word) {
+		try (PreparedStatement statement = this.connection.prepareStatement("INSERT INTO kanji"
+				+ "(`kanji`, `Meaning`,`Reading`, `jlptlvl`, `learnStat`)"
+				+ " VALUES(?,?,?,?,?)")){
+			statement.setObject(1, word.getKanji());
+			statement.setObject(2, word.getMeaning());
+			statement.setObject(3, word.getReading());
+			statement.setObject(4, word.getJlptlvl());
+			statement.setObject(5, word.getLearnStat());
+			statement.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateKanji(kanji word) {
+		try (PreparedStatement statement = this.connection.prepareStatement("UPDATE kanji "
+				+ "SET `kanji` = ?, `Meaning` = ?,`Reading` = ?, `jlptlvl` = ?, `learnStat` = ?"
+				+ " WHERE id_kanji = ? ")){
+			statement.setObject(1, word.getKanji());
+			statement.setObject(2, word.getMeaning());
+			statement.setObject(3, word.getReading());
+			statement.setObject(4, word.getJlptlvl());
+			statement.setObject(5, word.getLearnStat());
+			statement.setObject(6, word.getIdKanji());
+			statement.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteKanji(int id) {
+		try(PreparedStatement statement = this.connection.prepareStatement(
+				"DELETE FROM kanji WHERE id_kanji = ?")){
+			statement.setObject(1, id);
+			statement.execute();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//работа с таблицей KanjiInLists
+	public List<KanjiInLists> getAllKanjiInList(){
+		try (Statement statement = this.connection.createStatement()){
+			List<KanjiInLists> kanjis = new ArrayList<>();
+			ResultSet resultSet = statement.executeQuery("SELECT Id_kanjiInList, id_List, id_kanji FROM KanjiInLists");
+			while(resultSet.next()) {
+				kanjis.add(new KanjiInLists(
+						resultSet.getInt("Id_kanjiInList"),
+						resultSet.getInt("id_List"),
+						resultSet.getInt("id_kanji")));
+			}
+			return kanjis;
+		}catch(SQLException e){
+			e.printStackTrace();
+			return Collections.emptyList();
+		}
+	}
+	
+	public void addKanjiInLists(int idList, int idKanji) {
+		try (PreparedStatement statement = this.connection.prepareStatement("INSERT INTO KanjiInLists"
+				+ "(`id_List`, `id_kanji`)"
+				+ " VALUES(?,?)")){
+			statement.setObject(1, idList);
+			statement.setObject(2, idKanji);
+			statement.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateKanjiInLists(KanjiInLists word) {
+		try (PreparedStatement statement = this.connection.prepareStatement("UPDATE KanjiInLists "
+				+ "SET `id_List` = ?, `id_kanji` = ?"
+				+ " WHERE Id_kanjiInList = ? ")){
+			statement.setObject(1, word.getList());
+			statement.setObject(2, word.getKanji());
+			statement.setObject(3, word.getKanjiInList());
+			statement.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteKanjiInList(int id) {
+		try(PreparedStatement statement = this.connection.prepareStatement(
+				"DELETE FROM KanjiInLists WHERE Id_kanjiInList = ?")){
+			statement.setObject(1, id);
+			statement.execute();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 }
